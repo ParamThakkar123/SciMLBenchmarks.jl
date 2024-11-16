@@ -17,7 +17,7 @@ In order to separate these two, we will use `iip` for the in-place names and `oo
 
 ```julia
 using OrdinaryDiffEq, Plots, DiffEqCallbacks
-using SciMLBenchmarks
+using SciMLBenchmarks, NonlinearSolve, ADTypes
 using TaylorIntegration, LinearAlgebra, StaticArrays
 gr(fmt=:png)
 default(fmt=:png)
@@ -52,7 +52,7 @@ end
 const oop_q0 = @SVector [0.1, 0.]
 const oop_p0 = @SVector [0., 0.5]
 
-function hamilton(du, u, p, t)
+function hamilton(du,u,p,t)
     dq, q = @views u[3:4], du[3:4]
     dp, p = @views u[1:2], du[1:2]
 
@@ -64,11 +64,11 @@ function hamilton(du, u, p, t)
 end
 
 function g(resid, u, p)
-    resid[1] = H([u[1], u[2]], [u[3], u[4]], nothing) - E
+    resid[1] = H([u[1],u[2]], [u[3],u[4]], nothing) - E
     resid[2:4] .= 0
 end
 
-const cb = ManifoldProjection(g, nlopts=Dict(:ftol => 1e-13))
+const cb = ManifoldProjection(g, nlopts=Dict(:ftol=>1e-13), autodiff=AutoForwardDiff())
 
 const E = H(iip_p0, iip_q0, nothing)
 ```
